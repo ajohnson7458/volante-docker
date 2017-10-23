@@ -1,0 +1,10 @@
+{
+  "name": "volante-docker",
+  "description": "volante module for docker management using docker.sock",
+  "version": "1.0.0",
+  "author": "Mike Smiley <msmiley@alumni.rice.edu>",
+  "url": "https://github.com/msmiley/volante-docker",
+  "repository": "msmiley/volante-docker.git",
+  "license": "ISC",
+  "keywords": ["volante"]
+}
