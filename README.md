@@ -17,7 +17,7 @@ Volante modules are automatically loaded and instanced if they are installed loc
 Options may be changed using the `volante-docker.options` event with an options object (shown with defaults):
 
 ```js
-hub.emit('volante-docker.options', {
+hub.emit('VolanteDocker.props', {
   sock: '/var/run/docker.sock' // default
 });
 ```
@@ -28,7 +28,7 @@ hub.emit('volante-docker.options', {
 
 hub.on('any.reply.event.name', (d) => console.log(d));
 
-hub.emit('volante-docker.command', {
+hub.emit('VolanteDocker.command', {
   eventName: 'any.reply.event.name',
   method: 'GET',
   path: '/containers/json'
@@ -41,13 +41,13 @@ volante-docker attempts to automatically fill in the API version number for the 
 
 ### Handled
 
-- `volante-docker.options`
+- `VolanteDocker.props`
   ```js
   {
     sock: String
   }
   ```
-- `volante-docker.command`
+- `VolanteDocker.command`
   ```js
   {
     eventName: String, // optional
@@ -60,7 +60,7 @@ volante-docker attempts to automatically fill in the API version number for the 
 
 ### Emitted
 
-In addition to native Volante log events, this modules also emits the response to a Docker Engine HTTP API request using the `eventName` given in the `volante-docker.command`. If no `eventName` was provided, the response will not be emitted.
+In addition to native Volante log events, this modules also emits the response to a Docker Engine HTTP API request using the `eventName` given in the `VolanteDocker.command`. If no `eventName` was provided, the response will not be emitted.
 
 ## License
 
