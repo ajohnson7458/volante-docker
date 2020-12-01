@@ -17,7 +17,7 @@ Volante modules are automatically loaded and instanced if they are installed loc
 Options may be changed using the `volante-docker.options` event with an options object (shown with defaults):
 
 ```js
-hub.emit('VolanteDocker.props', {
+hub.emit('VolanteDocker.update', {
   sock: '/var/run/docker.sock' // default
 });
 ```
