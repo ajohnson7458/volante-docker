@@ -235,4 +235,3 @@ module.exports = {
 //
 // exports
 //
-//module.exports = VolanteDocker;
