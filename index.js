@@ -11,18 +11,20 @@ module.exports = {
   name: 'VolanteDocker',
   init() {
   },
-  events: {
-    'VolanteDocker.command'(cmd) {
-      this.handleMessage(cmd);
-    },
-  },
   props: {
     apiVersion: null,
     logging: false,
     sock: os.platform() === 'win32' ? 'http://localhost:2375' : '/var/run/docker.sock'
   },
+  events: {
+    'VolanteDocker.command'(cmd) {
+      this.handleMessage(cmd);
+    },
+    'VolanteDocker.up'(){
+      console.log('DOCKER ACCESSED')
+    }
+  },
   methods: {
-    
     //
     // the initial connect populates the local api version
     //
@@ -39,6 +41,7 @@ module.exports = {
           console.log(`VolanteDocker: Docker Socket on ${this.sock}`)
           console.log(`VolanteDocker: Docker Version is ${body.data.Version}`)
           console.log(`VolanteDocker: Docker API version is ${body.data.ApiVersion}`)
+          this.$emit('VolanteDocker.up')
         } else {
           this.$debug('failed to get /version info')
           this.$debug(body)
@@ -114,19 +117,6 @@ module.exports = {
             data: bodyBuf,
             socketPath: sockpath
         }
-      /*} else {
-        request = {
-          method: method,
-          url: combineurl,
-          responseType: 'json',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': 0
-          },
-          socketPath: sockpath
-        } 
-      }*/
-
       axios(request)
       .then((response) => {
         // for debugging, uncomment. If left uncommented will cause dashboard
@@ -140,7 +130,7 @@ module.exports = {
           "name" : cname // used to associate request with container
          }
 
-         //if (callback) { return callback(retobject); }
+         if (callback) { return callback(retobject); }
          return retobject;
 
       })
@@ -186,7 +176,7 @@ module.exports = {
          }
         }
 
-        //if (callback) { return callback(retobject); }
+        if (callback) { return callback(retobject); }
         return retobject;
       });
     },
@@ -222,20 +212,20 @@ module.exports = {
     // }
     //
     //
-    handleMessage(msg) {
+    handleMessage(msg, callback) {
       //this.debug(`received command: ${JSON.stringify(msg,null,2)}`);
-
       if (this.apiVersion === null) {
         this.connect();
       }
-
       // check required fields
       if (msg && msg.method && msg.path) {
-        return this.httpRequest(msg.method, msg.path, msg.parameters, msg.body, (body) => {
+        this.httpRequest(msg.method, msg.path, msg.parameters, msg.body, (body) => {
           // emit response if an eventName was provided
-          if (msg.eventName) {
-            return this.$hub.emit(msg.eventName, body);
-          }
+          //if (msg.eventName) {
+          //  return this.$hub.emit(msg.eventName, body);
+          //}
+          if (callback) {return callback(body)}
+          return this.$hub.emit(msg.eventName, body)
         });
       }
     },
