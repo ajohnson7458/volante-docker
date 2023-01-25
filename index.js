@@ -50,7 +50,6 @@ module.exports = {
     },
 
     getContainerNameFromURL(urlstring) {
-
       let urlobj = null;
       if (os.platform() === "win32") {
         // e.g. "http://localhost:2375/v1.29/containers/create?name=hypnos-channel-1624910049598"
@@ -120,7 +119,7 @@ module.exports = {
       axios(request)
       .then((response) => {
         // for debugging, uncomment. If left uncommented will cause dashboard
-      // to spew container information every so often
+        //   to spew container information every so often
         //console.log(response)
         let cname = this.getContainerNameFromURL(response.config.url);
         let retobject = {
@@ -211,20 +210,18 @@ module.exports = {
     //   body: <optional>
     // }
     //
-    //
     handleMessage(msg, callback) {
-      //this.debug(`received command: ${JSON.stringify(msg,null,2)}`);
       if (this.apiVersion === null) {
+        // initialize VolanteDocker connection
         this.connect();
       }
       // check required fields
       if (msg && msg.method && msg.path) {
         this.httpRequest(msg.method, msg.path, msg.parameters, msg.body, (body) => {
-          // emit response if an eventName was provided
-          //if (msg.eventName) {
-          //  return this.$hub.emit(msg.eventName, body);
-          //}
-          if (callback) {return callback(body)}
+          // return callback if one is provided, otherwise emit eventName
+          if (callback) {
+            return callback(body)
+          }
           return this.$hub.emit(msg.eventName, body)
         });
       }
