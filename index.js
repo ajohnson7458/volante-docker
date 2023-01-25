@@ -11,18 +11,20 @@ module.exports = {
   name: 'VolanteDocker',
   init() {
   },
-  events: {
-    'VolanteDocker.command'(cmd) {
-      this.handleMessage(cmd);
-    },
-  },
   props: {
     apiVersion: null,
     logging: false,
     sock: os.platform() === 'win32' ? 'http://localhost:2375' : '/var/run/docker.sock'
   },
+  events: {
+    'VolanteDocker.command'(cmd) {
+      this.handleMessage(cmd);
+    },
+    'VolanteDocker.up'(){
+      console.log('DOCKER ACCESSED')
+    }
+  },
   methods: {
-    
     //
     // the initial connect populates the local api version
     //
@@ -39,6 +41,7 @@ module.exports = {
           console.log(`VolanteDocker: Docker Socket on ${this.sock}`)
           console.log(`VolanteDocker: Docker Version is ${body.data.Version}`)
           console.log(`VolanteDocker: Docker API version is ${body.data.ApiVersion}`)
+          this.$emit('VolanteDocker.up')
         } else {
           this.$debug('failed to get /version info')
           this.$debug(body)
@@ -47,7 +50,6 @@ module.exports = {
     },
 
     getContainerNameFromURL(urlstring) {
-
       let urlobj = null;
       if (os.platform() === "win32") {
         // e.g. "http://localhost:2375/v1.29/containers/create?name=hypnos-channel-1624910049598"
@@ -114,23 +116,10 @@ module.exports = {
             data: bodyBuf,
             socketPath: sockpath
         }
-      /*} else {
-        request = {
-          method: method,
-          url: combineurl,
-          responseType: 'json',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': 0
-          },
-          socketPath: sockpath
-        } 
-      }*/
-
       axios(request)
       .then((response) => {
         // for debugging, uncomment. If left uncommented will cause dashboard
-      // to spew container information every so often
+        //   to spew container information every so often
         //console.log(response)
         let cname = this.getContainerNameFromURL(response.config.url);
         let retobject = {
@@ -140,7 +129,7 @@ module.exports = {
           "name" : cname // used to associate request with container
          }
 
-         //if (callback) { return callback(retobject); }
+         if (callback) { return callback(retobject); }
          return retobject;
 
       })
@@ -186,7 +175,7 @@ module.exports = {
          }
         }
 
-        //if (callback) { return callback(retobject); }
+        if (callback) { return callback(retobject); }
         return retobject;
       });
     },
@@ -221,21 +210,19 @@ module.exports = {
     //   body: <optional>
     // }
     //
-    //
-    handleMessage(msg) {
-      //this.debug(`received command: ${JSON.stringify(msg,null,2)}`);
-
+    handleMessage(msg, callback) {
       if (this.apiVersion === null) {
+        // initialize VolanteDocker connection
         this.connect();
       }
-
       // check required fields
       if (msg && msg.method && msg.path) {
-        return this.httpRequest(msg.method, msg.path, msg.parameters, msg.body, (body) => {
-          // emit response if an eventName was provided
-          if (msg.eventName) {
-            return this.$hub.emit(msg.eventName, body);
+        this.httpRequest(msg.method, msg.path, msg.parameters, msg.body, (body) => {
+          // return callback if one is provided, otherwise emit eventName
+          if (callback) {
+            return callback(body)
           }
+          return this.$hub.emit(msg.eventName, body)
         });
       }
     },
@@ -245,4 +232,3 @@ module.exports = {
 //
 // exports
 //
-//module.exports = VolanteDocker;
